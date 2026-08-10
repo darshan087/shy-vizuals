@@ -31,7 +31,7 @@ export default function Home() {
   const [siteSettings, setSiteSettings] =
     useState<SiteSettings | null>(null);
 
-  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [, setSettingsLoading] = useState(true);
 
   // Load plans
   useEffect(() => {
@@ -400,7 +400,7 @@ export default function Home() {
 
             <h2 className="mt-5 text-5xl font-black leading-[0.95] tracking-[-0.05em] sm:text-7xl">
 
-              WE DON'T
+              WE DON&apos;T
               <br />
 
               JUST SHOOT.
@@ -461,7 +461,7 @@ export default function Home() {
 
           <h2 className="mx-auto mt-6 max-w-4xl text-6xl font-black leading-[0.85] tracking-[-0.06em] sm:text-8xl lg:text-9xl">
 
-            LET'S CREATE
+            LET&apos;S CREATE
             <br />
 
             <span className="italic text-white/30">

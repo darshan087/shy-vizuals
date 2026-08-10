@@ -21,6 +21,19 @@ import {
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+type RecentBooking = {
+  id?: number;
+  customerName?: string;
+  name?: string;
+  plan?: { name?: string } | null;
+  planName?: string;
+  bookingNumber?: string;
+  totalAmount?: number;
+  amount?: number;
+  bookingStatus?: string;
+  status?: string;
+};
+
 type DashboardData = {
   bookings?: {
     total?: number;
@@ -35,7 +48,7 @@ type DashboardData = {
     advance?: number;
     pending?: number;
   };
-  recentBookings?: any[];
+  recentBookings?: RecentBooking[];
 };
 
 export default function OwnerDashboard() {
@@ -439,7 +452,7 @@ export default function OwnerDashboard() {
                   <div className="divide-y divide-white/10">
 
                     {recentBookings.map(
-                      (booking: any, index: number) => (
+                      (booking: RecentBooking, index: number) => (
 
                         <div
                           key={booking.id ?? index}

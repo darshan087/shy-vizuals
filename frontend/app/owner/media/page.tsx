@@ -65,7 +65,7 @@ export default function ManageMediaPage() {
     const token = getToken();
 
     if (!token) {
-      return {};
+      return undefined;
     }
 
     return {
@@ -86,9 +86,7 @@ export default function ManageMediaPage() {
         `${API_URL}/api/media/owner`,
         {
           method: "GET",
-          headers: {
-            ...authHeaders(),
-          },
+          headers: authHeaders(),
           cache: "no-store",
         }
       );
