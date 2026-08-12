@@ -12,6 +12,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -362,37 +363,7 @@ export default function ManagePlansPage() {
     <main className="min-h-screen bg-[#080808] text-white">
       {/* NAVBAR */}
 
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur">
-        <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-5 lg:px-8">
-          <Link
-            href="/owner"
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white font-black text-black">
-              S
-            </div>
-
-            <div>
-              <p className="font-black tracking-[0.15em]">
-                SHY.
-              </p>
-
-              <p className="text-[8px] tracking-[0.35em] text-white/40">
-                VIZUALS OWNER
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/owner"
-            className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/5 hover:text-white"
-          >
-            <ArrowLeft size={16} />
-            Dashboard
-          </Link>
-        </div>
-      </header>
-
+      <OwnerNavbar/>
       <div className="mx-auto max-w-[1400px] px-5 py-10 lg:px-8 lg:py-14">
         {/* HEADER */}
 

@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -514,32 +515,7 @@ export default function ManageMediaPage() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
-
-      {/* NAVBAR */}
-
-      <nav className="border-b border-white/10 bg-black">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
-
-          <Link href="/" className="block">
-            <div className="text-xl font-black tracking-[0.18em]">
-              SHY.
-            </div>
-
-            <div className="text-[8px] tracking-[0.42em] text-white/40">
-              VIZUALS
-            </div>
-          </Link>
-
-          <Link
-            href="/owner"
-            className="rounded-full border border-white/10 px-5 py-3 text-sm font-bold transition hover:border-white/30 hover:bg-white hover:text-black"
-          >
-            ← OWNER DASHBOARD
-          </Link>
-
-        </div>
-      </nav>
-
+    <OwnerNavbar/>
       {/* PAGE */}
 
       <section className="mx-auto max-w-7xl px-5 py-12 lg:px-8">

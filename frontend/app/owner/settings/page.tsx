@@ -17,6 +17,7 @@ import {
   CreditCard,
   CheckCircle2,
 } from "lucide-react";
+import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -642,28 +643,7 @@ export default function OwnerSettingsPage() {
   return (
     <main className="min-h-screen bg-[#050505] text-white">
 
-      <header className="border-b border-white/10 bg-black/70">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 lg:px-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-white/30">
-              SHY.VIZUALS
-            </p>
-
-            <h1 className="mt-2 text-2xl font-black">
-              Business Settings
-            </h1>
-          </div>
-
-          <Link
-            href="/owner"
-            className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/60 transition hover:border-white/30 hover:text-white"
-          >
-            <ArrowLeft size={16} />
-            Dashboard
-          </Link>
-        </div>
-      </header>
-
+     <OwnerNavbar/>
       <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
 
         {message && (

@@ -20,6 +20,7 @@ import {
   ExternalLink,
   CreditCard,
 } from "lucide-react";
+import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -388,54 +389,7 @@ export default function OwnerBookingsPage() {
   return (
     <main className="min-h-screen bg-[#080808] text-white">
       {/* HEADER */}
-
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur">
-        <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-5 lg:px-8">
-          <Link
-            href="/owner"
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white font-black text-black">
-              S
-            </div>
-
-            <div>
-              <p className="font-black tracking-[0.15em]">
-                SHY.
-              </p>
-
-              <p className="text-[8px] tracking-[0.35em] text-white/40">
-                VIZUALS OWNER
-              </p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/owner"
-              className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm text-white/50 transition hover:text-white"
-            >
-              <ArrowLeft size={16} />
-              Dashboard
-            </Link>
-
-            <button
-              onClick={loadBookings}
-              className="rounded-full border border-white/10 p-2.5 text-white/50 transition hover:text-white"
-              title="Refresh"
-            >
-              <RefreshCw
-                size={16}
-                className={
-                  loading
-                    ? "animate-spin"
-                    : ""
-                }
-              />
-            </button>
-          </div>
-        </div>
-      </header>
+    <OwnerNavbar/>
 
       {/* CONTENT */}
 
