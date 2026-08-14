@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   ChangeEvent,
   FormEvent,
@@ -7,21 +8,18 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Save,
   Upload,
   Loader2,
   Image as ImageIcon,
   CreditCard,
   CheckCircle2,
+  LogOut,
 } from "lucide-react";
-import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 type SiteSettings = {
   id?: number;
@@ -44,14 +42,13 @@ type PaymentSettings = {
 export default function OwnerSettingsPage() {
   const router = useRouter();
 
-  const [settings, setSettings] =
-    useState<SiteSettings>({
-      businessName: "",
-      email: "",
-      phone: "",
-      tagline: "",
-      logoUrl: null,
-    });
+  const [settings, setSettings] = useState<SiteSettings>({
+    businessName: "",
+    email: "",
+    phone: "",
+    tagline: "",
+    logoUrl: null,
+  });
 
   const [paymentSettings, setPaymentSettings] =
     useState<PaymentSettings>({
@@ -64,16 +61,10 @@ export default function OwnerSettingsPage() {
     });
 
   const [loading, setLoading] = useState(true);
-  const [savingBusiness, setSavingBusiness] =
-    useState(false);
-  const [savingPayment, setSavingPayment] =
-    useState(false);
-
-  const [uploadingLogo, setUploadingLogo] =
-    useState(false);
-
-  const [uploadingQr, setUploadingQr] =
-    useState(false);
+  const [savingBusiness, setSavingBusiness] = useState(false);
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingQr, setUploadingQr] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -92,35 +83,22 @@ export default function OwnerSettingsPage() {
           fetch(`${API_URL}/api/site-settings`, {
             cache: "no-store",
           }),
-
-          fetch(
-            `${API_URL}/api/payment-settings`,
-            {
-              cache: "no-store",
-            }
-          ),
+          fetch(`${API_URL}/api/payment-settings`, {
+            cache: "no-store",
+          }),
         ]);
 
-      const siteData =
-        await siteResponse.json();
+      const siteData = await siteResponse.json();
+      const paymentData = await paymentResponse.json();
 
-      const paymentData =
-        await paymentResponse.json();
-
-      if (
-        !siteResponse.ok ||
-        !siteData.success
-      ) {
+      if (!siteResponse.ok || !siteData.success) {
         throw new Error(
           siteData.message ||
             "Failed to load business settings"
         );
       }
 
-      if (
-        !paymentResponse.ok ||
-        !paymentData.success
-      ) {
+      if (!paymentResponse.ok || !paymentData.success) {
         throw new Error(
           paymentData.message ||
             "Failed to load payment settings"
@@ -131,38 +109,28 @@ export default function OwnerSettingsPage() {
         id: siteData.settings.id,
         businessName:
           siteData.settings.businessName || "",
-        email:
-          siteData.settings.email || "",
-        phone:
-          siteData.settings.phone || "",
-        tagline:
-          siteData.settings.tagline || "",
+        email: siteData.settings.email || "",
+        phone: siteData.settings.phone || "",
+        tagline: siteData.settings.tagline || "",
         logoUrl:
           siteData.settings.logoUrl || null,
       });
 
       setPaymentSettings({
         id: paymentData.settings.id,
-        upiId:
-          paymentData.settings.upiId || "",
+        upiId: paymentData.settings.upiId || "",
         qrImageUrl:
-          paymentData.settings.qrImageUrl ||
-          null,
+          paymentData.settings.qrImageUrl || null,
         advanceType:
           paymentData.settings.advanceType ||
           "PERCENTAGE",
         advanceValue:
-          paymentData.settings.advanceValue ??
-          30,
+          paymentData.settings.advanceValue ?? 30,
         paymentMessage:
-          paymentData.settings.paymentMessage ||
-          "",
+          paymentData.settings.paymentMessage || "",
       });
     } catch (err) {
-      console.error(
-        "Load settings error:",
-        err
-      );
+      console.error("Load settings error:", err);
 
       setError(
         err instanceof Error
@@ -174,11 +142,15 @@ export default function OwnerSettingsPage() {
     }
   }
 
+  function logout() {
+    localStorage.removeItem("ownerToken");
+    router.replace("/owner/login");
+  }
+
   async function handleLogoUpload(
     event: ChangeEvent<HTMLInputElement>
   ) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
@@ -199,77 +171,53 @@ export default function OwnerSettingsPage() {
         );
       }
 
-      if (
-        file.size >
-        5 * 1024 * 1024
-      ) {
+      if (file.size > 5 * 1024 * 1024) {
         throw new Error(
           "Logo image must be smaller than 5 MB."
         );
       }
 
       const token =
-        localStorage.getItem(
-          "ownerToken"
-        );
+        localStorage.getItem("ownerToken");
 
       if (!token) {
-        router.replace(
-          "/owner/login"
-        );
+        router.replace("/owner/login");
         return;
       }
 
-      const formData =
-        new FormData();
+      const formData = new FormData();
 
-      formData.append(
-        "logo",
-        file
+      formData.append("logo", file);
+
+      const response = await fetch(
+        `${API_URL}/api/uploads/logo`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
       );
 
-      const response =
-        await fetch(
-          `${API_URL}/api/uploads/logo`,
-          {
-            method: "POST",
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-            body: formData,
-          }
-        );
+      const data = await response.json();
 
-      const data =
-        await response.json();
-
-      if (
-        !response.ok ||
-        !data.success
-      ) {
+      if (!response.ok || !data.success) {
         throw new Error(
-          data.message ||
-            "Logo upload failed"
+          data.message || "Logo upload failed"
         );
       }
 
-      setSettings(
-        (current) => ({
-          ...current,
-          logoUrl:
-            data.file.url,
-        })
-      );
+      setSettings((current) => ({
+        ...current,
+        logoUrl: data.file.url,
+      }));
 
       setMessage(
-        "Logo uploaded. Click Save Business Settings."
+        "Logo uploaded successfully. Click Save Business Settings."
       );
     } catch (err) {
-      console.error(
-        "Logo upload error:",
-        err
-      );
+      console.error("Logo upload error:", err);
 
       setError(
         err instanceof Error
@@ -285,8 +233,7 @@ export default function OwnerSettingsPage() {
   async function handleQrUpload(
     event: ChangeEvent<HTMLInputElement>
   ) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
@@ -307,77 +254,53 @@ export default function OwnerSettingsPage() {
         );
       }
 
-      if (
-        file.size >
-        5 * 1024 * 1024
-      ) {
+      if (file.size > 5 * 1024 * 1024) {
         throw new Error(
           "QR image must be smaller than 5 MB."
         );
       }
 
       const token =
-        localStorage.getItem(
-          "ownerToken"
-        );
+        localStorage.getItem("ownerToken");
 
       if (!token) {
-        router.replace(
-          "/owner/login"
-        );
+        router.replace("/owner/login");
         return;
       }
 
-      const formData =
-        new FormData();
+      const formData = new FormData();
 
-      formData.append(
-        "qr",
-        file
+      formData.append("qr", file);
+
+      const response = await fetch(
+        `${API_URL}/api/uploads/payment-qr`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
       );
 
-      const response =
-        await fetch(
-          `${API_URL}/api/uploads/payment-qr`,
-          {
-            method: "POST",
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-            body: formData,
-          }
-        );
+      const data = await response.json();
 
-      const data =
-        await response.json();
-
-      if (
-        !response.ok ||
-        !data.success
-      ) {
+      if (!response.ok || !data.success) {
         throw new Error(
-          data.message ||
-            "QR upload failed"
+          data.message || "QR upload failed"
         );
       }
 
-      setPaymentSettings(
-        (current) => ({
-          ...current,
-          qrImageUrl:
-            data.file.url,
-        })
-      );
+      setPaymentSettings((current) => ({
+        ...current,
+        qrImageUrl: data.file.url,
+      }));
 
       setMessage(
-        "QR uploaded. Click Save Payment Settings."
+        "QR uploaded successfully. Click Save Payment Settings."
       );
     } catch (err) {
-      console.error(
-        "QR upload error:",
-        err
-      );
+      console.error("QR upload error:", err);
 
       setError(
         err instanceof Error
@@ -401,50 +324,34 @@ export default function OwnerSettingsPage() {
 
     try {
       const token =
-        localStorage.getItem(
-          "ownerToken"
-        );
+        localStorage.getItem("ownerToken");
 
       if (!token) {
-        router.replace(
-          "/owner/login"
-        );
+        router.replace("/owner/login");
         return;
       }
 
-      const response =
-        await fetch(
-          `${API_URL}/api/site-settings`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-              Authorization:
-                `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              businessName:
-                settings.businessName,
-              email:
-                settings.email,
-              phone:
-                settings.phone,
-              tagline:
-                settings.tagline,
-              logoUrl:
-                settings.logoUrl,
-            }),
-          }
-        );
+      const response = await fetch(
+        `${API_URL}/api/site-settings`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            businessName: settings.businessName,
+            email: settings.email,
+            phone: settings.phone,
+            tagline: settings.tagline,
+            logoUrl: settings.logoUrl,
+          }),
+        }
+      );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
-      if (
-        !response.ok ||
-        !data.success
-      ) {
+      if (!response.ok || !data.success) {
         throw new Error(
           data.message ||
             "Failed to save business settings"
@@ -454,17 +361,12 @@ export default function OwnerSettingsPage() {
       setSettings({
         id: data.settings.id,
         businessName:
-          data.settings.businessName ||
-          "",
-        email:
-          data.settings.email || "",
-        phone:
-          data.settings.phone || "",
-        tagline:
-          data.settings.tagline || "",
+          data.settings.businessName || "",
+        email: data.settings.email || "",
+        phone: data.settings.phone || "",
+        tagline: data.settings.tagline || "",
         logoUrl:
-          data.settings.logoUrl ||
-          null,
+          data.settings.logoUrl || null,
       });
 
       setMessage(
@@ -494,14 +396,10 @@ export default function OwnerSettingsPage() {
 
     try {
       const token =
-        localStorage.getItem(
-          "ownerToken"
-        );
+        localStorage.getItem("ownerToken");
 
       if (!token) {
-        router.replace(
-          "/owner/login"
-        );
+        router.replace("/owner/login");
         return;
       }
 
@@ -518,10 +416,7 @@ export default function OwnerSettingsPage() {
         paymentSettings.advanceValue
       );
 
-      if (
-        !Number.isFinite(value) ||
-        value < 0
-      ) {
+      if (!Number.isFinite(value) || value < 0) {
         throw new Error(
           "Advance amount must be a valid number."
         );
@@ -537,39 +432,30 @@ export default function OwnerSettingsPage() {
         );
       }
 
-      const response =
-        await fetch(
-          `${API_URL}/api/payment-settings`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-              Authorization:
-                `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              upiId:
-                paymentSettings.upiId,
-              qrImageUrl:
-                paymentSettings.qrImageUrl,
-              advanceType:
-                paymentSettings.advanceType,
-              advanceValue:
-                value,
-              paymentMessage:
-                paymentSettings.paymentMessage,
-            }),
-          }
-        );
+      const response = await fetch(
+        `${API_URL}/api/payment-settings`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            upiId: paymentSettings.upiId,
+            qrImageUrl:
+              paymentSettings.qrImageUrl,
+            advanceType:
+              paymentSettings.advanceType,
+            advanceValue: value,
+            paymentMessage:
+              paymentSettings.paymentMessage,
+          }),
+        }
+      );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
-      if (
-        !response.ok ||
-        !data.success
-      ) {
+      if (!response.ok || !data.success) {
         throw new Error(
           data.message ||
             "Failed to save payment settings"
@@ -578,18 +464,15 @@ export default function OwnerSettingsPage() {
 
       setPaymentSettings({
         id: data.settings.id,
-        upiId:
-          data.settings.upiId || "",
+        upiId: data.settings.upiId || "",
         qrImageUrl:
-          data.settings.qrImageUrl ||
-          null,
+          data.settings.qrImageUrl || null,
         advanceType:
           data.settings.advanceType,
         advanceValue:
           data.settings.advanceValue,
         paymentMessage:
-          data.settings.paymentMessage ||
-          "",
+          data.settings.paymentMessage || "",
       });
 
       setMessage(
@@ -608,14 +491,11 @@ export default function OwnerSettingsPage() {
     }
   }
 
-  const logoPreview =
-    settings.logoUrl
-      ? settings.logoUrl.startsWith(
-          "http"
-        )
-        ? settings.logoUrl
-        : `${API_URL}${settings.logoUrl}`
-      : "";
+  const logoPreview = settings.logoUrl
+    ? settings.logoUrl.startsWith("http")
+      ? settings.logoUrl
+      : `${API_URL}${settings.logoUrl}`
+    : "";
 
   const qrPreview =
     paymentSettings.qrImageUrl
@@ -643,9 +523,66 @@ export default function OwnerSettingsPage() {
   return (
     <main className="min-h-screen bg-[#050505] text-white">
 
-     <OwnerNavbar/>
+      {/* SIMPLE SETTINGS HEADER */}
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur">
+        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5 lg:px-8">
+
+          {/* LOGO */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white font-black text-black">
+              S
+            </div>
+
+            <div>
+              <p className="font-black tracking-[0.15em]">
+                SHY.
+              </p>
+
+              <p className="text-[8px] tracking-[0.35em] text-white/40">
+                VIZUALS OWNER
+              </p>
+            </div>
+          </div>
+
+          {/* ONLY SETTINGS + LOGOUT */}
+          <div className="flex items-center gap-3">
+
+            <div className="hidden rounded-lg bg-white/10 px-4 py-2 text-sm sm:block">
+              Settings
+            </div>
+
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2.5 text-sm text-white/60 transition hover:border-white/30 hover:text-white"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">
+                Logout
+              </span>
+            </button>
+
+          </div>
+        </div>
+      </header>
+
       <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
 
+        {/* PAGE TITLE */}
+        <div className="mb-10">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/30">
+            Owner Panel
+          </p>
+
+          <h1 className="mt-3 text-4xl font-black sm:text-5xl">
+            Settings
+          </h1>
+
+          <p className="mt-2 text-white/40">
+            Manage your business, branding and payment information.
+          </p>
+        </div>
+
+        {/* SUCCESS MESSAGE */}
         {message && (
           <div className="mb-6 flex items-center gap-3 rounded-xl border border-green-500/20 bg-green-500/10 px-5 py-4 text-sm text-green-300">
             <CheckCircle2 size={18} />
@@ -653,6 +590,7 @@ export default function OwnerSettingsPage() {
           </div>
         )}
 
+        {/* ERROR MESSAGE */}
         {error && (
           <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-300">
             {error}
@@ -660,12 +598,12 @@ export default function OwnerSettingsPage() {
         )}
 
         {/* BUSINESS SETTINGS */}
-
         <form
           onSubmit={saveBusinessSettings}
           className="grid gap-8 lg:grid-cols-[1fr_360px]"
         >
 
+          {/* BUSINESS INFORMATION */}
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
 
             <p className="text-xs uppercase tracking-[0.3em] text-white/30">
@@ -688,8 +626,7 @@ export default function OwnerSettingsPage() {
                 onChange={(value) =>
                   setSettings({
                     ...settings,
-                    businessName:
-                      value,
+                    businessName: value,
                   })
                 }
                 placeholder="Shy.Vizuals"
@@ -726,14 +663,11 @@ export default function OwnerSettingsPage() {
                 </label>
 
                 <textarea
-                  value={
-                    settings.tagline || ""
-                  }
+                  value={settings.tagline || ""}
                   onChange={(e) =>
                     setSettings({
                       ...settings,
-                      tagline:
-                        e.target.value,
+                      tagline: e.target.value,
                     })
                   }
                   rows={4}
@@ -764,10 +698,10 @@ export default function OwnerSettingsPage() {
                 </>
               )}
             </button>
+
           </div>
 
           {/* LOGO */}
-
           <div className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
 
             <p className="text-xs uppercase tracking-[0.3em] text-white/30">
@@ -781,14 +715,18 @@ export default function OwnerSettingsPage() {
             <div className="mt-6 flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black">
 
               {logoPreview ? (
-                <img
+                <Image
                   src={logoPreview}
                   alt="Business logo"
+                  width={360}
+                  height={360}
+                  unoptimized
                   className="max-h-full max-w-full object-contain p-8"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-3 text-white/20">
                   <ImageIcon size={48} />
+
                   <span className="text-sm">
                     No logo uploaded
                   </span>
@@ -817,24 +755,23 @@ export default function OwnerSettingsPage() {
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={
-                  handleLogoUpload
-                }
+                onChange={handleLogoUpload}
                 disabled={uploadingLogo}
                 className="hidden"
               />
+
             </label>
 
           </div>
         </form>
 
         {/* PAYMENT SETTINGS */}
-
         <form
           onSubmit={savePaymentSettings}
           className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]"
         >
 
+          {/* PAYMENT INFORMATION */}
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
 
             <div className="flex items-start gap-4">
@@ -861,14 +798,9 @@ export default function OwnerSettingsPage() {
 
             <div className="mt-8 space-y-6">
 
-              {/* UPI ID */}
-
               <Input
                 label="UPI ID"
-                value={
-                  paymentSettings.upiId ||
-                  ""
-                }
+                value={paymentSettings.upiId || ""}
                 onChange={(value) =>
                   setPaymentSettings({
                     ...paymentSettings,
@@ -883,16 +815,13 @@ export default function OwnerSettingsPage() {
               </p>
 
               {/* ADVANCE TYPE */}
-
               <div>
                 <label className="mb-2 block text-sm text-white/50">
                   Advance Payment Type
                 </label>
 
                 <select
-                  value={
-                    paymentSettings.advanceType
-                  }
+                  value={paymentSettings.advanceType}
                   onChange={(e) =>
                     setPaymentSettings({
                       ...paymentSettings,
@@ -915,7 +844,6 @@ export default function OwnerSettingsPage() {
               </div>
 
               {/* ADVANCE VALUE */}
-
               <Input
                 label={
                   paymentSettings.advanceType ===
@@ -924,16 +852,13 @@ export default function OwnerSettingsPage() {
                     : "Advance Amount (₹)"
                 }
                 type="number"
-                value={
-                  String(
-                    paymentSettings.advanceValue
-                  )
-                }
+                value={String(
+                  paymentSettings.advanceValue
+                )}
                 onChange={(value) =>
                   setPaymentSettings({
                     ...paymentSettings,
-                    advanceValue:
-                      value,
+                    advanceValue: value,
                   })
                 }
                 placeholder={
@@ -944,8 +869,7 @@ export default function OwnerSettingsPage() {
                 }
               />
 
-              {/* MESSAGE */}
-
+              {/* PAYMENT MESSAGE */}
               <div>
                 <label className="mb-2 block text-sm text-white/50">
                   Payment Message
@@ -995,7 +919,6 @@ export default function OwnerSettingsPage() {
           </div>
 
           {/* QR CODE */}
-
           <div className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
 
             <p className="text-xs uppercase tracking-[0.3em] text-white/30">
@@ -1013,9 +936,12 @@ export default function OwnerSettingsPage() {
             <div className="mt-6 flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white">
 
               {qrPreview ? (
-                <img
+                <Image
                   src={qrPreview}
                   alt="UPI payment QR code"
+                  width={360}
+                  height={360}
+                  unoptimized
                   className="h-full w-full object-contain p-5"
                 />
               ) : (
@@ -1043,6 +969,7 @@ export default function OwnerSettingsPage() {
               ) : (
                 <>
                   <Upload size={18} />
+
                   {qrPreview
                     ? "Change QR Scanner"
                     : "Upload QR Scanner"}
@@ -1052,12 +979,11 @@ export default function OwnerSettingsPage() {
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={
-                  handleQrUpload
-                }
+                onChange={handleQrUpload}
                 disabled={uploadingQr}
                 className="hidden"
               />
+
             </label>
 
             <p className="mt-4 text-center text-xs leading-5 text-white/25">

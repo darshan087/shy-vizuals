@@ -1,9 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Check,
   Edit3,
   IndianRupee,
@@ -543,10 +542,13 @@ export default function ManagePlansPage() {
                   {/* IMAGE */}
 
                   {plan.imageUrl && (
-                    <div className="h-48 overflow-hidden border-b border-white/10 bg-black">
-                      <img
+                    <div className="relative h-48 overflow-hidden border-b border-white/10 bg-black">
+                      <Image
                         src={plan.imageUrl}
                         alt={plan.name}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        unoptimized
                         className="h-full w-full object-cover"
                       />
                     </div>

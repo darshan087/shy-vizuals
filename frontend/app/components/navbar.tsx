@@ -1,164 +1,119 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { LogOut, Menu, RefreshCw, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
-export default function OwnerNavbar() {
-  const router = useRouter();
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  const [mobileMenu, setMobileMenu] = useState(false);
+type SiteSettings = {
+  businessName: string;
+  tagline: string | null;
+  logoUrl: string | null;
+};
 
-  const loadDashboard = () => {
-    router.refresh();
-  };
+export default function Navbar() {
+  const [settings, setSettings] =
+    useState<SiteSettings | null>(null);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("ownerToken");
-    localStorage.removeItem("accessToken");
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/site-settings`,
+          {
+            cache: "no-store",
+          }
+        );
 
-    router.push("/owner/login");
-  };
+        const data = await res.json();
+
+        if (data.success) {
+          setSettings(data.settings);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadSettings();
+  }, []);
+
+  const logo = settings?.logoUrl
+    ? settings.logoUrl.startsWith("http")
+      ? settings.logoUrl
+      : `${API_URL}${settings.logoUrl}`
+    : null;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur">
-      <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-5 lg:px-8">
-        {/* Logo */}
-        <Link href="/owner" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white font-black text-black">
-            S
-          </div>
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
 
-          <div>
-            <p className="font-black tracking-[0.15em]">SHY.</p>
+        {/* LOGO */}
 
-            <p className="text-[8px] tracking-[0.35em] text-white/40">
-              VIZUALS OWNER
-            </p>
-          </div>
+        <Link href="/" className="flex items-center">
+          {logo ? (
+            <Image
+              src={logo}
+              alt="Logo"
+              width={180}
+              height={44}
+              unoptimized
+              className="h-11 w-auto object-contain"
+            />
+          ) : (
+            <div>
+              <h1 className="text-xl font-black tracking-[0.18em]">
+                SHY.
+              </h1>
+
+              <p className="text-[8px] tracking-[0.45em] text-white/40">
+                VIZUALS
+              </p>
+            </div>
+          )}
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-2 md:flex">
+        {/* OWNER NAVIGATION */}
+
+        <div className="hidden items-center gap-8 md:flex">
           <Link
-            href="/owner"
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm"
+            href="/owner/dashboard"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             Dashboard
           </Link>
 
           <Link
             href="/owner/bookings"
-            className="rounded-lg px-4 py-2 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             Bookings
           </Link>
 
           <Link
             href="/owner/plans"
-            className="rounded-lg px-4 py-2 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             Plans
           </Link>
 
           <Link
             href="/owner/media"
-            className="rounded-lg px-4 py-2 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             Media
           </Link>
-
-          <Link
-            href="/owner/settings"
-            className="rounded-lg px-4 py-2 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
-          >
-            Settings
-          </Link>
-        </nav>
-
-        {/* Right Side */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={loadDashboard}
-            className="hidden rounded-lg border border-white/10 p-2.5 text-white/50 transition hover:text-white sm:block"
-            title="Refresh"
-          >
-            <RefreshCw size={17} />
-          </button>
-
-          <button
-            onClick={logout}
-            className="hidden items-center gap-2 rounded-lg border border-white/10 px-4 py-2.5 text-sm text-white/60 transition hover:text-white sm:flex"
-          >
-            <LogOut size={16} />
-            Logout
-          </button>
-
-          <button
-            onClick={() => setMobileMenu(!mobileMenu)}
-            className="rounded-lg border border-white/10 p-2.5 md:hidden"
-          >
-            {mobileMenu ? <X size={19} /> : <Menu size={19} />}
-          </button>
         </div>
+
+        {/* OWNER */}
+
+        <div className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white/60">
+          OWNER
+        </div>
+
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenu && (
-        <div className="border-t border-white/10 p-4 md:hidden">
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/owner"
-              onClick={() => setMobileMenu(false)}
-              className="rounded-lg bg-white/10 px-4 py-3"
-            >
-              Dashboard
-            </Link>
-
-            <Link
-              href="/owner/bookings"
-              onClick={() => setMobileMenu(false)}
-              className="rounded-lg px-4 py-3 text-white/60"
-            >
-              Bookings
-            </Link>
-
-            <Link
-              href="/owner/plans"
-              onClick={() => setMobileMenu(false)}
-              className="rounded-lg px-4 py-3 text-white/60"
-            >
-              Plans
-            </Link>
-
-            <Link
-              href="/owner/media"
-              onClick={() => setMobileMenu(false)}
-              className="rounded-lg px-4 py-3 text-white/60"
-            >
-              Media
-            </Link>
-
-            <Link
-              href="/owner/settings"
-              onClick={() => setMobileMenu(false)}
-              className="rounded-lg px-4 py-3 text-white/60"
-            >
-              Settings
-            </Link>
-
-            <button
-              onClick={logout}
-              className="mt-2 flex items-center gap-2 rounded-lg px-4 py-3 text-left text-red-300"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
-    </header>
+    </nav>
   );
 }

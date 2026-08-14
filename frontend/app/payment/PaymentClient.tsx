@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -95,9 +96,7 @@ export default function PaymentClient() {
 
   const advanceAmount = settings
     ? settings.advanceType === "PERCENTAGE"
-      ? (amount *
-          Number(settings.advanceValue)) /
-        100
+      ? (amount * Number(settings.advanceValue)) / 100
       : Number(settings.advanceValue)
     : 0;
 
@@ -264,7 +263,6 @@ export default function PaymentClient() {
       }
 
       setSuccess(true);
-
       setFile(null);
     } catch (err) {
       console.error(
@@ -284,89 +282,219 @@ export default function PaymentClient() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
+
       {/* NAVBAR */}
       <nav className="border-b border-white/10 bg-black">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
-          <Link href="/" className="block">
-            <div className="text-xl font-black tracking-[0.18em]">SHY.</div>
-            <div className="text-[8px] tracking-[0.42em] text-white/40">VIZUALS</div>
+
+          {/* OWNER / LOGO BUTTON → MAIN WEBSITE */}
+          <Link
+            href="/"
+            className="block transition-opacity hover:opacity-70"
+          >
+            <div className="text-xl font-black tracking-[0.18em]">
+              SHY.
+            </div>
+
+            <div className="text-[8px] tracking-[0.42em] text-white/40">
+              VIZUALS
+            </div>
           </Link>
 
-          <Link href="/booking" className="text-sm text-white/50 transition hover:text-white">← Back to Booking</Link>
+          {/* ONLY BACK BUTTON */}
+          <Link
+            href="/booking"
+            className="text-sm text-white/50 transition hover:text-white"
+          >
+            ← Back to Booking
+          </Link>
+
         </div>
       </nav>
 
       {/* HEADER */}
       <section className="mx-auto max-w-5xl px-5 pb-10 pt-20 lg:px-8">
-        <p className="text-xs uppercase tracking-[0.35em] text-white/30">Final Step</p>
+        <p className="text-xs uppercase tracking-[0.35em] text-white/30">
+          Final Step
+        </p>
 
-        <h1 className="mt-5 text-6xl font-black leading-[0.85] tracking-[-0.06em] sm:text-8xl">SECURE<br/>YOUR<br/><span className="italic text-white/30">DATE.</span></h1>
+        <h1 className="mt-5 text-6xl font-black leading-[0.85] tracking-[-0.06em] sm:text-8xl">
+          SECURE
+          <br />
+          YOUR
+          <br />
+          <span className="italic text-white/30">
+            DATE.
+          </span>
+        </h1>
       </section>
 
       {/* MAIN */}
       <section className="mx-auto grid max-w-5xl gap-8 px-5 pb-32 lg:grid-cols-[1fr_360px] lg:px-8">
+
         {/* PAYMENT CARD */}
         <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/30">01 / Payment</p>
 
-          <h2 className="mt-3 text-3xl font-black">PAY YOUR ADVANCE</h2>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/30">
+            01 / Payment
+          </p>
 
-          <p className="mt-4 max-w-lg text-sm leading-6 text-white/40">Complete the advance payment using the UPI details below, then upload your payment screenshot.</p>
+          <h2 className="mt-3 text-3xl font-black">
+            PAY YOUR ADVANCE
+          </h2>
+
+          <p className="mt-4 max-w-lg text-sm leading-6 text-white/40">
+            Complete the advance payment using the UPI
+            details below, then upload your payment
+            screenshot.
+          </p>
 
           {loadingSettings ? (
-            <div className="mt-10 rounded-3xl border border-white/10 bg-black p-10 text-center text-sm text-white/40">Loading payment details...</div>
+            <div className="mt-10 rounded-3xl border border-white/10 bg-black p-10 text-center text-sm text-white/40">
+              Loading payment details...
+            </div>
           ) : (
             <>
+              {/* QR CODE */}
               <div className="mt-10 flex min-h-[320px] items-center justify-center rounded-3xl border border-white/10 bg-black p-8">
+
                 {settings?.qrImageUrl ? (
-                  <img src={settings.qrImageUrl} alt="Payment QR Code" className="h-64 w-64 rounded-xl object-contain" />
+                  <Image
+                    src={
+                      settings.qrImageUrl.startsWith("http")
+                        ? settings.qrImageUrl
+                        : `${API_URL}${settings.qrImageUrl}`
+                    }
+                    alt="Payment QR Code"
+                    width={256}
+                    height={256}
+                    unoptimized
+                    className="h-64 w-64 rounded-xl object-contain"
+                  />
                 ) : (
-                  <div className="text-center text-white/30">No QR code available</div>
+                  <div className="text-center text-white/30">
+                    No QR code available
+                  </div>
                 )}
+
               </div>
 
+              {/* PAYMENT DETAILS */}
               <div className="mt-6 grid gap-3">
+
+                {/* ADVANCE */}
                 <div className="rounded-xl border border-white/10 px-4 py-3 text-sm">
-                  <div className="text-xs text-white/40">Advance Amount</div>
-                  <div className="mt-1 font-bold">₹{Number(advanceAmount || 0).toLocaleString("en-IN")}</div>
+                  <div className="text-xs text-white/40">
+                    Advance Amount
+                  </div>
+
+                  <div className="mt-1 font-bold">
+                    ₹
+                    {Number(
+                      advanceAmount || 0
+                    ).toLocaleString("en-IN")}
+                  </div>
                 </div>
 
+                {/* UPI */}
                 <div className="rounded-xl border border-white/10 px-4 py-3 text-sm">
-                  <div className="text-xs text-white/40">UPI ID</div>
-                  <div className="mt-1 font-bold">{settings?.upiId || "Not provided"}</div>
+                  <div className="text-xs text-white/40">
+                    UPI ID
+                  </div>
+
+                  <div className="mt-1 font-bold">
+                    {settings?.upiId ||
+                      "Not provided"}
+                  </div>
                 </div>
 
+                {/* PAYMENT MESSAGE */}
+                {settings?.paymentMessage && (
+                  <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white/50">
+                    {settings.paymentMessage}
+                  </div>
+                )}
+
+                {/* SCREENSHOT */}
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-white/50">Upload Payment Screenshot</label>
-                  <input type="file" accept="image/*" onChange={handleFileChange} />
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-white/50">
+                    Upload Payment Screenshot
+                  </label>
+
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFileChange}
+                    className="w-full rounded-xl border border-white/10 bg-black p-3 text-sm text-white/60 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-bold file:text-black"
+                  />
+
+                  {file && (
+                    <p className="mt-2 text-xs text-green-300">
+                      Selected: {file.name}
+                    </p>
+                  )}
                 </div>
 
+                {/* SUBMIT */}
                 <div>
-                  <button onClick={submitPayment} disabled={uploading} className="w-full rounded-full bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/80 disabled:opacity-50">{uploading ? "UPLOADING..." : "SUBMIT PAYMENT"}</button>
+                  <button
+                    onClick={submitPayment}
+                    disabled={uploading}
+                    className="w-full rounded-full bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {uploading
+                      ? "UPLOADING..."
+                      : "SUBMIT PAYMENT"}
+                  </button>
                 </div>
 
+                {/* ERROR */}
                 {error && (
-                  <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">{error}</div>
+                  <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+                    {error}
+                  </div>
                 )}
 
+                {/* SUCCESS */}
                 {success && (
-                  <div className="mt-5 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-300">Payment submitted successfully.</div>
+                  <div className="mt-5 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-300">
+                    Payment submitted successfully.
+                  </div>
                 )}
+
               </div>
             </>
           )}
         </div>
 
         {/* SUMMARY */}
-        <aside className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/30">Summary</p>
-          <h3 className="mt-2 font-bold">Booking</h3>
+        <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+
+          <p className="text-xs uppercase tracking-[0.3em] text-white/30">
+            Summary
+          </p>
+
+          <h3 className="mt-2 font-bold">
+            Booking
+          </h3>
 
           <div className="mt-4 text-sm text-white/40">
-            <div>Booking Number: {bookingNumber || "-"}</div>
-            <div className="mt-2">Amount: ₹{Number(amount || 0).toLocaleString("en-IN")}</div>
+
+            <div>
+              Booking Number:{" "}
+              {bookingNumber || "-"}
+            </div>
+
+            <div className="mt-2">
+              Amount: ₹
+              {Number(
+                amount || 0
+              ).toLocaleString("en-IN")}
+            </div>
+
           </div>
         </aside>
+
       </section>
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 const API_URL =
@@ -283,9 +284,12 @@ export default function BookingPage() {
           <Link href="/" className="flex items-center gap-3">
 
             {logoUrl ? (
-              <img
+              <Image
                 src={logoUrl}
                 alt={businessName}
+                width={180}
+                height={48}
+                unoptimized
                 className="h-12 w-auto max-w-[180px] object-contain"
               />
             ) : (

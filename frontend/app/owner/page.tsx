@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,7 +14,7 @@ import {
   Users,
   X,
   ArrowUpRight,
-  Image,
+  Image as ImageIcon,
   Settings,
 } from "lucide-react";
 
@@ -61,11 +61,7 @@ export default function OwnerDashboard() {
   const [error, setError] = useState("");
   const [mobileMenu, setMobileMenu] = useState(false);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     const token = localStorage.getItem("ownerToken");
 
     if (!token) {
@@ -114,7 +110,11 @@ export default function OwnerDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   function logout() {
     localStorage.removeItem("ownerToken");
@@ -541,7 +541,7 @@ export default function OwnerDashboard() {
 
                   <QuickAction
                     href="/owner/media"
-                    icon={<Image size={19} />}
+                    icon={<ImageIcon size={19} />}
                     title="Manage Media"
                     description="Upload photos and videos"
                   />

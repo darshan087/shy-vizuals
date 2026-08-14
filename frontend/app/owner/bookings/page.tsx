@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   CalendarDays,
   Clock3,
   Mail,
   MapPin,
   Phone,
-  RefreshCw,
   Search,
   User,
   X,
@@ -20,7 +18,6 @@ import {
   ExternalLink,
   CreditCard,
 } from "lucide-react";
-import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -90,11 +87,11 @@ export default function OwnerBookingsPage() {
   const [updatingPaymentId, setUpdatingPaymentId] =
     useState<number | null>(null);
 
-  useEffect(() => {
-    loadBookings();
-  }, []);
+  // --------------------------------------------------
+  // LOAD BOOKINGS
+  // --------------------------------------------------
 
-  async function loadBookings() {
+  const loadBookings = useCallback(async () => {
     const token = localStorage.getItem("ownerToken");
 
     if (!token) {
@@ -106,23 +103,13 @@ export default function OwnerBookingsPage() {
       setLoading(true);
       setError("");
 
-      /*
-       * IMPORTANT:
-       * Backend route is:
-       * GET /api/bookings
-       *
-       * NOT:
-       * /api/bookings/owner
-       */
       const response = await fetch(
         `${API_URL}/api/bookings`,
         {
           method: "GET",
-
           headers: {
             Authorization: `Bearer ${token}`,
           },
-
           cache: "no-store",
         }
       );
@@ -153,14 +140,16 @@ export default function OwnerBookingsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
 
-  /*
-   * Update booking status
-   *
-   * Backend:
-   * PATCH /api/bookings/:id
-   */
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
+
+  // --------------------------------------------------
+  // UPDATE BOOKING STATUS
+  // --------------------------------------------------
+
   async function updateBookingStatus(
     bookingId: number,
     status: string
@@ -179,12 +168,10 @@ export default function OwnerBookingsPage() {
         `${API_URL}/api/bookings/${bookingId}`,
         {
           method: "PATCH",
-
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             bookingStatus: status,
           }),
@@ -206,8 +193,7 @@ export default function OwnerBookingsPage() {
         );
       }
 
-      const updatedBooking =
-        data.booking || null;
+      const updatedBooking = data.booking || null;
 
       setBookings((current) =>
         current.map((booking) =>
@@ -245,12 +231,10 @@ export default function OwnerBookingsPage() {
     }
   }
 
-  /*
-   * Update payment status
-   *
-   * Backend:
-   * PATCH /api/bookings/:id
-   */
+  // --------------------------------------------------
+  // UPDATE PAYMENT STATUS
+  // --------------------------------------------------
+
   async function updatePaymentStatus(
     bookingId: number,
     status: string
@@ -269,12 +253,10 @@ export default function OwnerBookingsPage() {
         `${API_URL}/api/bookings/${bookingId}`,
         {
           method: "PATCH",
-
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             paymentStatus: status,
           }),
@@ -296,8 +278,7 @@ export default function OwnerBookingsPage() {
         );
       }
 
-      const updatedBooking =
-        data.booking || null;
+      const updatedBooking = data.booking || null;
 
       setBookings((current) =>
         current.map((booking) =>
@@ -335,6 +316,10 @@ export default function OwnerBookingsPage() {
     }
   }
 
+  // --------------------------------------------------
+  // FORMAT DATE
+  // --------------------------------------------------
+
   function formatDate(date: string) {
     if (!date) return "-";
 
@@ -351,9 +336,17 @@ export default function OwnerBookingsPage() {
     });
   }
 
+  // --------------------------------------------------
+  // FORMAT MONEY
+  // --------------------------------------------------
+
   function formatMoney(value: string | number) {
     return Number(value || 0).toLocaleString("en-IN");
   }
+
+  // --------------------------------------------------
+  // FILE URL
+  // --------------------------------------------------
 
   function getFileUrl(url?: string | null) {
     if (!url) return "";
@@ -364,6 +357,10 @@ export default function OwnerBookingsPage() {
 
     return `${API_URL}${url}`;
   }
+
+  // --------------------------------------------------
+  // SEARCH
+  // --------------------------------------------------
 
   const filteredBookings = bookings.filter(
     (booking) => {
@@ -386,15 +383,81 @@ export default function OwnerBookingsPage() {
     }
   );
 
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
+
   return (
     <main className="min-h-screen bg-[#080808] text-white">
-      {/* HEADER */}
-    <OwnerNavbar/>
 
-      {/* CONTENT */}
+      {/* ==================================================
+          OWNER HEADER
+      ================================================== */}
+
+      <header className="border-b border-white/10 bg-black">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
+
+          {/* LOGO */}
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/owner/dashboard")
+            }
+            className="flex items-center gap-3"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]">
+              <span className="text-lg font-black">
+                S
+              </span>
+            </div>
+
+            <div className="hidden text-left sm:block">
+              <p className="text-sm font-black tracking-widest">
+                SHY.VIZUALS
+              </p>
+
+              <p className="text-[9px] uppercase tracking-[0.25em] text-white/30">
+                Owner Panel
+              </p>
+            </div>
+          </button>
+
+          {/* OWNER NAVIGATION */}
+          <nav className="flex items-center gap-3">
+
+            <button
+              type="button"
+              onClick={() =>
+                router.push("/owner/dashboard")
+              }
+              className="rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-white/70 transition hover:border-white/30 hover:bg-white hover:text-black"
+            >
+              Dashboard
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-white/70 transition hover:border-white/30 hover:bg-white hover:text-black"
+            >
+              Back
+            </button>
+
+          </nav>
+
+        </div>
+      </header>
+
+      {/* ==================================================
+          CONTENT
+      ================================================== */}
 
       <div className="mx-auto max-w-[1400px] px-5 py-8 lg:px-8 lg:py-12">
+
+        {/* PAGE TITLE */}
+
         <div className="flex flex-wrap items-end justify-between gap-6">
+
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-white/30">
               Management
@@ -409,6 +472,8 @@ export default function OwnerBookingsPage() {
             </p>
           </div>
 
+          {/* TOTAL BOOKINGS */}
+
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4">
             <p className="text-xs text-white/30">
               Total Bookings
@@ -418,12 +483,17 @@ export default function OwnerBookingsPage() {
               {bookings.length}
             </p>
           </div>
+
         </div>
 
-        {/* SEARCH */}
+        {/* ==================================================
+            SEARCH
+        ================================================== */}
 
         <div className="mt-8">
+
           <div className="relative max-w-xl">
+
             <Search
               size={18}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
@@ -437,13 +507,18 @@ export default function OwnerBookingsPage() {
               placeholder="Search customer, booking number, phone, plan..."
               className="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 pl-11 pr-4 outline-none transition focus:border-white/30"
             />
+
           </div>
+
         </div>
 
-        {/* ERROR */}
+        {/* ==================================================
+            ERROR
+        ================================================== */}
 
         {error && (
           <div className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5">
+
             <p className="font-semibold text-red-300">
               Could not load bookings
             </p>
@@ -453,19 +528,26 @@ export default function OwnerBookingsPage() {
             </p>
 
             <button
+              type="button"
               onClick={loadBookings}
               className="mt-4 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
             >
               Try Again
             </button>
+
           </div>
         )}
 
-        {/* LOADING */}
+        {/* ==================================================
+            LOADING
+        ================================================== */}
 
         {loading ? (
+
           <div className="flex min-h-[400px] items-center justify-center">
+
             <div className="text-center">
+
               <Loader2
                 size={30}
                 className="mx-auto animate-spin text-white/30"
@@ -474,10 +556,19 @@ export default function OwnerBookingsPage() {
               <p className="mt-4 text-sm text-white/40">
                 Loading bookings...
               </p>
+
             </div>
+
           </div>
+
         ) : filteredBookings.length === 0 ? (
+
+          /* ==================================================
+              NO BOOKINGS
+          ================================================== */
+
           <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-16 text-center">
+
             <CalendarDays
               size={45}
               className="mx-auto text-white/15"
@@ -492,16 +583,26 @@ export default function OwnerBookingsPage() {
                 ? "Try a different search."
                 : "Customer bookings will appear here."}
             </p>
+
           </div>
+
         ) : (
+
           <>
-            {/* DESKTOP TABLE */}
+            {/* ==================================================
+                DESKTOP TABLE
+            ================================================== */}
 
             <div className="mt-8 hidden overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] lg:block">
+
               <div className="overflow-x-auto">
+
                 <table className="w-full min-w-[1000px]">
+
                   <thead>
+
                     <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-white/30">
+
                       <th className="px-6 py-5">
                         Customer
                       </th>
@@ -529,17 +630,25 @@ export default function OwnerBookingsPage() {
                       <th className="px-6 py-5">
                         Action
                       </th>
+
                     </tr>
+
                   </thead>
 
                   <tbody>
+
                     {filteredBookings.map(
                       (booking) => (
+
                         <tr
                           key={booking.id}
                           className="border-b border-white/10 last:border-0 hover:bg-white/[0.02]"
                         >
+
+                          {/* CUSTOMER */}
+
                           <td className="px-6 py-5">
+
                             <p className="font-semibold">
                               {booking.customerName}
                             </p>
@@ -547,16 +656,24 @@ export default function OwnerBookingsPage() {
                             <p className="mt-1 text-xs text-white/30">
                               {booking.bookingNumber}
                             </p>
+
                           </td>
 
+                          {/* PLAN */}
+
                           <td className="px-6 py-5">
+
                             <p className="font-medium">
                               {booking.plan?.name ||
                                 "Plan"}
                             </p>
+
                           </td>
 
+                          {/* DATE */}
+
                           <td className="px-6 py-5">
+
                             <p className="text-sm">
                               {formatDate(
                                 booking.bookingDate
@@ -567,9 +684,13 @@ export default function OwnerBookingsPage() {
                               {booking.bookingTime ||
                                 "Time not set"}
                             </p>
+
                           </td>
 
+                          {/* AMOUNT */}
+
                           <td className="px-6 py-5">
+
                             <p className="font-semibold">
                               ₹
                               {formatMoney(
@@ -583,26 +704,39 @@ export default function OwnerBookingsPage() {
                                 booking.advanceAmount
                               )}
                             </p>
+
                           </td>
 
+                          {/* PAYMENT */}
+
                           <td className="px-6 py-5">
+
                             <PaymentBadge
                               status={
                                 booking.paymentStatus
                               }
                             />
+
                           </td>
 
+                          {/* STATUS */}
+
                           <td className="px-6 py-5">
+
                             <StatusBadge
                               status={
                                 booking.bookingStatus
                               }
                             />
+
                           </td>
 
+                          {/* ACTION */}
+
                           <td className="px-6 py-5">
+
                             <button
+                              type="button"
                               onClick={() =>
                                 setSelectedBooking(
                                   booking
@@ -612,21 +746,33 @@ export default function OwnerBookingsPage() {
                             >
                               View
                             </button>
+
                           </td>
+
                         </tr>
+
                       )
                     )}
+
                   </tbody>
+
                 </table>
+
               </div>
+
             </div>
 
-            {/* MOBILE */}
+            {/* ==================================================
+                MOBILE
+            ================================================== */}
 
             <div className="mt-8 space-y-4 lg:hidden">
+
               {filteredBookings.map(
                 (booking) => (
+
                   <button
+                    type="button"
                     key={booking.id}
                     onClick={() =>
                       setSelectedBooking(
@@ -635,8 +781,11 @@ export default function OwnerBookingsPage() {
                     }
                     className="w-full rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-left"
                   >
+
                     <div className="flex items-start justify-between gap-4">
+
                       <div>
+
                         <p className="font-bold">
                           {booking.customerName}
                         </p>
@@ -644,6 +793,7 @@ export default function OwnerBookingsPage() {
                         <p className="mt-1 text-xs text-white/30">
                           {booking.bookingNumber}
                         </p>
+
                       </div>
 
                       <StatusBadge
@@ -651,9 +801,11 @@ export default function OwnerBookingsPage() {
                           booking.bookingStatus
                         }
                       />
+
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 gap-4">
+
                       <div>
                         <p className="text-xs text-white/30">
                           Plan
@@ -703,24 +855,37 @@ export default function OwnerBookingsPage() {
                           />
                         </div>
                       </div>
+
                     </div>
+
                   </button>
+
                 )
               )}
+
             </div>
           </>
+
         )}
+
       </div>
 
-      {/* DETAILS MODAL */}
+      {/* ==================================================
+          DETAILS MODAL
+      ================================================== */}
 
       {selectedBooking && (
+
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-[#111]">
+
             {/* MODAL HEADER */}
 
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#111] p-6">
+
               <div>
+
                 <p className="text-xs uppercase tracking-[0.25em] text-white/30">
                   Booking Details
                 </p>
@@ -728,9 +893,11 @@ export default function OwnerBookingsPage() {
                 <h2 className="mt-1 text-xl font-bold">
                   {selectedBooking.bookingNumber}
                 </h2>
+
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   setSelectedBooking(null)
                 }
@@ -738,17 +905,23 @@ export default function OwnerBookingsPage() {
               >
                 <X size={18} />
               </button>
+
             </div>
 
             <div className="space-y-7 p-6">
-              {/* CUSTOMER */}
+
+              {/* ==================================================
+                  CUSTOMER
+              ================================================== */}
 
               <section>
+
                 <SectionTitle>
                   Customer
                 </SectionTitle>
 
                 <div className="grid gap-3 sm:grid-cols-2">
+
                   <InfoItem
                     icon={<User size={16} />}
                     label="Name"
@@ -780,17 +953,23 @@ export default function OwnerBookingsPage() {
                       selectedBooking.location
                     }
                   />
+
                 </div>
+
               </section>
 
-              {/* SHOOT */}
+              {/* ==================================================
+                  SHOOT DETAILS
+              ================================================== */}
 
               <section>
+
                 <SectionTitle>
                   Shoot Details
                 </SectionTitle>
 
                 <div className="grid gap-3 sm:grid-cols-3">
+
                   <InfoItem
                     icon={
                       <CalendarDays size={16} />
@@ -817,17 +996,23 @@ export default function OwnerBookingsPage() {
                       selectedBooking.location
                     }
                   />
+
                 </div>
+
               </section>
 
-              {/* PACKAGE */}
+              {/* ==================================================
+                  PACKAGE & PAYMENT
+              ================================================== */}
 
               <section>
+
                 <SectionTitle>
                   Package & Payment
                 </SectionTitle>
 
                 <div className="grid gap-3 sm:grid-cols-2">
+
                   <InfoItem
                     label="Plan"
                     value={
@@ -859,33 +1044,43 @@ export default function OwnerBookingsPage() {
                       selectedBooking.paymentStatus
                     }
                   />
+
                 </div>
+
               </section>
 
-              {/* REQUIREMENTS */}
+              {/* ==================================================
+                  REQUIREMENTS
+              ================================================== */}
 
               {selectedBooking.requirements && (
+
                 <section>
+
                   <SectionTitle>
                     Customer Requirements
                   </SectionTitle>
 
                   <div className="rounded-2xl border border-white/10 bg-black p-5 text-sm leading-7 text-white/60">
-                    {
-                      selectedBooking.requirements
-                    }
+                    {selectedBooking.requirements}
                   </div>
+
                 </section>
+
               )}
 
-              {/* PAYMENT SCREENSHOT */}
+              {/* ==================================================
+                  PAYMENT SCREENSHOT
+              ================================================== */}
 
               <section>
+
                 <SectionTitle>
                   Payment Screenshot
                 </SectionTitle>
 
                 {selectedBooking.paymentScreenshot ? (
+
                   <a
                     href={getFileUrl(
                       selectedBooking.paymentScreenshot
@@ -894,39 +1089,58 @@ export default function OwnerBookingsPage() {
                     rel="noreferrer"
                     className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-black"
                   >
-                    <img
+
+                    <Image
                       src={getFileUrl(
                         selectedBooking.paymentScreenshot
                       )}
                       alt="Payment screenshot"
+                      width={1200}
+                      height={800}
+                      unoptimized
                       className="max-h-[450px] w-full object-contain"
                     />
 
                     <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 text-xs backdrop-blur">
+
                       <ExternalLink size={14} />
+
                       Open image
+
                     </div>
+
                   </a>
+
                 ) : (
+
                   <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5">
+
                     <p className="text-sm text-yellow-300">
                       No payment screenshot has
                       been uploaded yet.
                     </p>
+
                   </div>
+
                 )}
+
               </section>
 
-              {/* PAYMENT STATUS */}
+              {/* ==================================================
+                  PAYMENT VERIFICATION
+              ================================================== */}
 
               <section>
+
                 <SectionTitle>
                   Payment Verification
                 </SectionTitle>
 
                 <div className="grid gap-3 sm:grid-cols-2">
+
                   {PAYMENT_STATUSES.map(
                     (status) => {
+
                       const active =
                         selectedBooking.paymentStatus ===
                         status;
@@ -936,7 +1150,9 @@ export default function OwnerBookingsPage() {
                         selectedBooking.id;
 
                       return (
+
                         <button
+                          type="button"
                           key={status}
                           disabled={updating}
                           onClick={() =>
@@ -951,35 +1167,50 @@ export default function OwnerBookingsPage() {
                               : "border-white/10 text-white/50 hover:border-white/30 hover:text-white"
                           }`}
                         >
+
                           {updating &&
                           active ? (
+
                             <Loader2
                               size={16}
                               className="mx-auto animate-spin"
                             />
+
                           ) : (
+
                             status.replace(
                               "_",
                               " "
                             )
+
                           )}
+
                         </button>
+
                       );
+
                     }
                   )}
+
                 </div>
+
               </section>
 
-              {/* BOOKING STATUS */}
+              {/* ==================================================
+                  BOOKING STATUS
+              ================================================== */}
 
               <section>
+
                 <SectionTitle>
                   Booking Status
                 </SectionTitle>
 
                 <div className="grid gap-2 sm:grid-cols-3">
+
                   {BOOKING_STATUSES.map(
                     (status) => {
+
                       const active =
                         selectedBooking.bookingStatus ===
                         status;
@@ -989,7 +1220,9 @@ export default function OwnerBookingsPage() {
                         selectedBooking.id;
 
                       return (
+
                         <button
+                          type="button"
                           key={status}
                           disabled={updating}
                           onClick={() =>
@@ -1004,27 +1237,40 @@ export default function OwnerBookingsPage() {
                               : "border-white/10 text-white/50 hover:border-white/30 hover:text-white"
                           }`}
                         >
+
                           {updating && active ? (
+
                             <Loader2
                               size={16}
                               className="mx-auto animate-spin"
                             />
+
                           ) : (
+
                             status.replace(
                               "_",
                               " "
                             )
+
                           )}
+
                         </button>
+
                       );
+
                     }
                   )}
+
                 </div>
+
               </section>
 
-              {/* QUICK ACTIONS */}
+              {/* ==================================================
+                  QUICK ACTIONS
+              ================================================== */}
 
               <div className="grid gap-3 sm:grid-cols-2">
+
                 <a
                   href={`tel:${selectedBooking.phone}`}
                   className="flex items-center justify-center gap-2 rounded-xl bg-white py-3 font-semibold text-black transition hover:bg-white/90"
@@ -1040,14 +1286,24 @@ export default function OwnerBookingsPage() {
                   <Mail size={17} />
                   Email Customer
                 </a>
+
               </div>
+
             </div>
+
           </div>
+
         </div>
+
       )}
+
     </main>
   );
 }
+
+// ==================================================
+// SECTION TITLE
+// ==================================================
 
 function SectionTitle({
   children,
@@ -1061,6 +1317,10 @@ function SectionTitle({
   );
 }
 
+// ==================================================
+// INFO ITEM
+// ==================================================
+
 function InfoItem({
   icon,
   label,
@@ -1072,6 +1332,7 @@ function InfoItem({
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-black p-4">
+
       <div className="flex items-center gap-2 text-xs text-white/30">
         {icon}
         {label}
@@ -1080,9 +1341,14 @@ function InfoItem({
       <p className="mt-2 break-words text-sm text-white/80">
         {value}
       </p>
+
     </div>
   );
 }
+
+// ==================================================
+// STATUS BADGE
+// ==================================================
 
 function StatusBadge({
   status,
@@ -1110,6 +1376,7 @@ function StatusBadge({
           : "border-yellow-500/20 bg-yellow-500/10 text-yellow-300"
       }`}
     >
+
       {isGood ? (
         <CheckCircle2 size={11} />
       ) : isBad ? (
@@ -1119,9 +1386,14 @@ function StatusBadge({
       )}
 
       {normalized.replace("_", " ")}
+
     </span>
   );
 }
+
+// ==================================================
+// PAYMENT BADGE
+// ==================================================
 
 function PaymentBadge({
   status,

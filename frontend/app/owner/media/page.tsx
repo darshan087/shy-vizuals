@@ -1,13 +1,14 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import {
+  useCallback,
   ChangeEvent,
   FormEvent,
   useEffect,
   useState,
 } from "react";
-import Link from "next/link";
-import OwnerNavbar from "@/app/components/navbar";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -46,11 +47,11 @@ export default function ManageMediaPage() {
   const [editThumbnail, setEditThumbnail] =
     useState("");
 
-  // --------------------------------------------------
+  // ==================================================
   // AUTH
-  // --------------------------------------------------
+  // ==================================================
 
-  function getToken() {
+  const getToken = useCallback(() => {
     if (typeof window === "undefined") {
       return null;
     }
@@ -60,9 +61,9 @@ export default function ManageMediaPage() {
       localStorage.getItem("ownerToken") ||
       localStorage.getItem("accessToken")
     );
-  }
+  }, []);
 
-  function authHeaders() {
+  const authHeaders = useCallback(() => {
     const token = getToken();
 
     if (!token) {
@@ -72,13 +73,13 @@ export default function ManageMediaPage() {
     return {
       Authorization: `Bearer ${token}`,
     };
-  }
+  }, [getToken]);
 
-  // --------------------------------------------------
+  // ==================================================
   // LOAD MEDIA
-  // --------------------------------------------------
+  // ==================================================
 
-  async function loadMedia() {
+  const loadMedia = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -112,15 +113,15 @@ export default function ManageMediaPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [authHeaders]);
 
   useEffect(() => {
     loadMedia();
-  }, []);
+  }, [loadMedia]);
 
-  // --------------------------------------------------
+  // ==================================================
   // FILE SELECT
-  // --------------------------------------------------
+  // ==================================================
 
   function handleFileChange(
     event: ChangeEvent<HTMLInputElement>
@@ -172,9 +173,9 @@ export default function ManageMediaPage() {
     }
   }
 
-  // --------------------------------------------------
+  // ==================================================
   // UPLOAD
-  // --------------------------------------------------
+  // ==================================================
 
   async function uploadMedia(event: FormEvent) {
     event.preventDefault();
@@ -270,9 +271,9 @@ export default function ManageMediaPage() {
     }
   }
 
-  // --------------------------------------------------
+  // ==================================================
   // EDIT
-  // --------------------------------------------------
+  // ==================================================
 
   function startEditing(item: Media) {
     setEditingId(item.id);
@@ -359,9 +360,9 @@ export default function ManageMediaPage() {
     }
   }
 
-  // --------------------------------------------------
+  // ==================================================
   // TOGGLE
-  // --------------------------------------------------
+  // ==================================================
 
   async function toggleMedia(id: number) {
     const token = getToken();
@@ -410,9 +411,9 @@ export default function ManageMediaPage() {
     }
   }
 
-  // --------------------------------------------------
+  // ==================================================
   // DELETE
-  // --------------------------------------------------
+  // ==================================================
 
   async function deleteMedia(id: number) {
     const confirmed = window.confirm(
@@ -471,9 +472,9 @@ export default function ManageMediaPage() {
     }
   }
 
-  // --------------------------------------------------
+  // ==================================================
   // MEDIA URL
-  // --------------------------------------------------
+  // ==================================================
 
   function mediaUrl(url: string) {
     if (!url) {
@@ -490,9 +491,9 @@ export default function ManageMediaPage() {
     return `${API_URL}${url}`;
   }
 
-  // --------------------------------------------------
-  // FORMAT DATE
-  // --------------------------------------------------
+  // ==================================================
+  // DATE
+  // ==================================================
 
   function formatDate(date: string) {
     try {
@@ -509,33 +510,64 @@ export default function ManageMediaPage() {
     }
   }
 
-  // --------------------------------------------------
+  // ==================================================
   // UI
-  // --------------------------------------------------
+  // ==================================================
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
-    <OwnerNavbar/>
-      {/* PAGE */}
+
+      {/* ================= HEADER ================= */}
+
+      <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl">
+
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/30">
+              Owner Panel
+            </p>
+
+            <h1 className="mt-1 text-2xl font-black tracking-tight">
+              MEDIA MANAGEMENT
+            </h1>
+          </div>
+
+          {/* GO TO DASHBOARD */}
+
+          <Link
+            href="/owner"
+            className="rounded-full bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/80"
+          >
+            ← GO TO DASHBOARD
+          </Link>
+
+        </div>
+
+      </header>
+
+      {/* ================= PAGE ================= */}
 
       <section className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
 
         <div className="mb-10">
+
           <p className="text-xs uppercase tracking-[0.35em] text-white/30">
             Owner Panel
           </p>
 
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.05em] sm:text-7xl">
+          <h2 className="mt-3 text-5xl font-black tracking-[-0.05em] sm:text-7xl">
             MEDIA
-          </h1>
+          </h2>
 
           <p className="mt-4 max-w-xl text-sm leading-6 text-white/40">
             Upload and manage the images and videos
             displayed on your Shy.Vizuals website.
           </p>
+
         </div>
 
-        {/* MESSAGES */}
+        {/* ================= MESSAGES ================= */}
 
         {error && (
           <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-300">
@@ -549,24 +581,28 @@ export default function ManageMediaPage() {
           </div>
         )}
 
-        {/* UPLOAD FORM */}
+        {/* ================= UPLOAD ================= */}
 
         <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 sm:p-8">
 
           <div className="mb-8">
+
             <p className="text-xs uppercase tracking-[0.3em] text-white/30">
               Add New
             </p>
 
-            <h2 className="mt-2 text-2xl font-black">
+            <h3 className="mt-2 text-2xl font-black">
               UPLOAD MEDIA
-            </h2>
+            </h3>
+
           </div>
 
           <form
             onSubmit={uploadMedia}
             className="grid gap-6 lg:grid-cols-2"
           >
+
+            {/* LEFT */}
 
             <div className="space-y-5">
 
@@ -646,6 +682,8 @@ export default function ManageMediaPage() {
 
             </div>
 
+            {/* RIGHT */}
+
             <div className="flex flex-col">
 
               <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-white/50">
@@ -656,6 +694,7 @@ export default function ManageMediaPage() {
                 htmlFor="media-file"
                 className="flex min-h-[280px] cursor-pointer flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-black p-8 text-center transition hover:border-white/30 hover:bg-white/[0.02]"
               >
+
                 <div className="text-5xl">
                   {file
                     ? mediaType === "VIDEO"
@@ -685,6 +724,7 @@ export default function ManageMediaPage() {
                   onChange={handleFileChange}
                   className="hidden"
                 />
+
               </label>
 
               <button
@@ -700,14 +740,17 @@ export default function ManageMediaPage() {
             </div>
 
           </form>
+
         </section>
 
-        {/* MEDIA LIST */}
+        {/* ================= MEDIA LIST ================= */}
 
         <section className="mt-16">
 
           <div className="mb-8 flex items-end justify-between">
+
             <div>
+
               <p className="text-xs uppercase tracking-[0.3em] text-white/30">
                 Library
               </p>
@@ -715,20 +758,26 @@ export default function ManageMediaPage() {
               <h2 className="mt-2 text-3xl font-black">
                 YOUR MEDIA
               </h2>
+
             </div>
 
             <div className="text-sm text-white/30">
               {media.length} item
               {media.length === 1 ? "" : "s"}
             </div>
+
           </div>
 
           {loading ? (
+
             <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-12 text-center text-sm text-white/40">
               Loading media...
             </div>
+
           ) : media.length === 0 ? (
+
             <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.02] p-12 text-center">
+
               <p className="text-lg font-bold">
                 No media uploaded yet.
               </p>
@@ -736,11 +785,15 @@ export default function ManageMediaPage() {
               <p className="mt-2 text-sm text-white/30">
                 Upload your first image or video above.
               </p>
+
             </div>
+
           ) : (
+
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
 
               {media.map((item) => (
+
                 <article
                   key={item.id}
                   className={`overflow-hidden rounded-3xl border ${
@@ -755,6 +808,7 @@ export default function ManageMediaPage() {
                   <div className="relative aspect-video overflow-hidden bg-[#111]">
 
                     {item.mediaType === "VIDEO" ? (
+
                       <video
                         src={mediaUrl(item.fileUrl)}
                         poster={
@@ -768,15 +822,22 @@ export default function ManageMediaPage() {
                         preload="metadata"
                         className="h-full w-full object-cover"
                       />
+
                     ) : (
-                      <img
+
+                      <Image
                         src={mediaUrl(item.fileUrl)}
                         alt={item.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        unoptimized
                         className="h-full w-full object-cover"
                       />
+
                     )}
 
                     <div className="absolute left-3 top-3">
+
                       <span
                         className={`rounded-full px-3 py-1 text-[10px] font-black ${
                           item.isActive
@@ -788,12 +849,15 @@ export default function ManageMediaPage() {
                           ? "ACTIVE"
                           : "HIDDEN"}
                       </span>
+
                     </div>
 
                     <div className="absolute right-3 top-3">
+
                       <span className="rounded-full bg-black/70 px-3 py-1 text-[10px] font-black text-white">
                         {item.mediaType}
                       </span>
+
                     </div>
 
                   </div>
@@ -803,6 +867,7 @@ export default function ManageMediaPage() {
                   <div className="p-5">
 
                     {editingId === item.id ? (
+
                       <div className="space-y-4">
 
                         <input
@@ -864,11 +929,15 @@ export default function ManageMediaPage() {
                         </div>
 
                       </div>
+
                     ) : (
+
                       <>
+
                         <div className="flex items-start justify-between gap-4">
 
                           <div className="min-w-0">
+
                             <h3 className="truncate text-lg font-black">
                               {item.title}
                             </h3>
@@ -878,14 +947,17 @@ export default function ManageMediaPage() {
                                 item.createdAt
                               )}
                             </p>
+
                           </div>
 
                         </div>
 
                         {item.description && (
+
                           <p className="mt-3 line-clamp-3 text-sm leading-5 text-white/40">
                             {item.description}
                           </p>
+
                         )}
 
                         <div className="mt-5 grid grid-cols-3 gap-2">
@@ -923,15 +995,19 @@ export default function ManageMediaPage() {
                           </button>
 
                         </div>
+
                       </>
+
                     )}
 
                   </div>
 
                 </article>
+
               ))}
 
             </div>
+
           )}
 
         </section>

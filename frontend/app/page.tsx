@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -15,6 +16,17 @@ type Plan = {
   isActive: boolean;
 };
 
+type Media = {
+  id: number;
+  title: string;
+  description: string | null;
+  mediaType: "IMAGE" | "VIDEO";
+  fileUrl: string;
+  thumbnailUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
 type SiteSettings = {
   id?: number;
   businessName: string;
@@ -25,15 +37,33 @@ type SiteSettings = {
 };
 
 export default function Home() {
+  // =========================
+  // PLANS
+  // =========================
+
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
+
+  // =========================
+  // SHOWREEL MEDIA
+  // =========================
+
+  const [media, setMedia] = useState<Media[]>([]);
+  const [mediaLoading, setMediaLoading] = useState(true);
+
+  // =========================
+  // SITE SETTINGS
+  // =========================
 
   const [siteSettings, setSiteSettings] =
     useState<SiteSettings | null>(null);
 
-  const [, setSettingsLoading] = useState(true);
+  const [settingsLoading, setSettingsLoading] = useState(true);
 
-  // Load plans
+  // =========================
+  // LOAD PLANS
+  // =========================
+
   useEffect(() => {
     async function loadPlans() {
       try {
@@ -59,7 +89,39 @@ export default function Home() {
     loadPlans();
   }, []);
 
-  // Load business settings
+  // =========================
+  // LOAD SHOWREEL MEDIA
+  // =========================
+
+  useEffect(() => {
+    async function loadMedia() {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/media`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setMedia(data.media || []);
+        }
+      } catch (error) {
+        console.error("Failed to load media:", error);
+      } finally {
+        setMediaLoading(false);
+      }
+    }
+
+    loadMedia();
+  }, []);
+
+  // =========================
+  // LOAD SITE SETTINGS
+  // =========================
+
   useEffect(() => {
     async function loadSiteSettings() {
       try {
@@ -88,11 +150,28 @@ export default function Home() {
     loadSiteSettings();
   }, []);
 
+  // =========================
+  // HELPERS
+  // =========================
+
   function formatPrice(price: number) {
     return `₹${Number(price).toLocaleString("en-IN")}`;
   }
 
-  // Build complete logo URL
+  function mediaUrl(url: string) {
+    if (!url) return "";
+
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    return `${API_URL}${url}`;
+  }
+
+  // =========================
+  // SETTINGS
+  // =========================
+
   const logoUrl =
     siteSettings?.logoUrl
       ? siteSettings.logoUrl.startsWith("http")
@@ -119,9 +198,12 @@ export default function Home() {
 
           <Link href="/" className="flex items-center">
             {logoUrl ? (
-              <img
+              <Image
                 src={logoUrl}
                 alt={businessName}
+                width={180}
+                height={44}
+                unoptimized
                 className="h-11 w-auto max-w-[180px] object-contain"
               />
             ) : (
@@ -145,6 +227,13 @@ export default function Home() {
               className="text-sm text-white/50 transition hover:text-white"
             >
               Services
+            </a>
+
+            <a
+              href="#showreel"
+              className="text-sm text-white/50 transition hover:text-white"
+            >
+              Showreel
             </a>
 
             <a
@@ -178,9 +267,11 @@ export default function Home() {
       <section className="relative flex min-h-screen items-center overflow-hidden">
 
         <div className="absolute inset-0">
+
           <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.035] blur-[120px]" />
 
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#050505_70%)]" />
+
         </div>
 
         <div className="relative mx-auto w-full max-w-7xl px-5 pt-24 lg:px-8">
@@ -189,7 +280,6 @@ export default function Home() {
 
             <div className="mb-8 flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-white/40">
               <span className="h-px w-10 bg-white/30" />
-
               Cinematic Visual Studio
             </div>
 
@@ -213,17 +303,17 @@ export default function Home() {
             <div className="mt-12 flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
 
               <div className="max-w-md">
+
                 <p className="text-base leading-7 text-white/45">
                   Cinematic visuals, professional edits and
                   scroll-stopping content built for brands,
                   creators and unforgettable moments.
                 </p>
 
-                {/* Dynamic tagline */}
-
                 <p className="mt-4 text-sm text-white/25">
                   {tagline}
                 </p>
+
               </div>
 
               <Link
@@ -232,8 +322,11 @@ export default function Home() {
               >
                 START YOUR PROJECT →
               </Link>
+
             </div>
+
           </div>
+
         </div>
 
         <div className="absolute bottom-8 left-5 text-[10px] uppercase tracking-[0.3em] text-white/25 lg:left-8">
@@ -243,16 +336,27 @@ export default function Home() {
         <div className="absolute bottom-8 right-5 text-[10px] uppercase tracking-[0.3em] text-white/25 lg:right-8">
           SCROLL TO EXPLORE ↓
         </div>
+
       </section>
 
-      {/* ================= SHOWREEL ================= */}
+      {/* =========================================================
+          SHOWREEL
+          REAL MEDIA FROM OWNER PANEL
+          ========================================================= */}
 
-      <section className="border-y border-white/10 bg-[#090909]">
+      <section
+        id="showreel"
+        className="border-y border-white/10 bg-[#090909]"
+      >
+
         <div className="mx-auto max-w-7xl px-5 py-24 lg:px-8">
 
-          <div className="mb-10 flex items-end justify-between gap-6">
+          {/* SHOWREEL HEADER */}
+
+          <div className="mb-12 flex items-end justify-between gap-6">
 
             <div>
+
               <p className="text-xs uppercase tracking-[0.3em] text-white/30">
                 Selected Work
               </p>
@@ -260,41 +364,143 @@ export default function Home() {
               <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
                 THE SHOWREEL
               </h2>
+
             </div>
 
-            <div className="hidden text-sm text-white/30 sm:block">
-              2026 / 01
-            </div>
+            <p className="hidden text-sm text-white/30 md:block">
+              {media.length} Project
+              {media.length !== 1 ? "s" : ""}
+            </p>
+
           </div>
 
-          <div className="group relative aspect-video overflow-hidden rounded-[2rem] border border-white/10 bg-[#111]">
+          {/* LOADING */}
 
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_50%)]" />
+          {mediaLoading ? (
 
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="rounded-3xl border border-white/10 bg-[#111] p-20 text-center">
 
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl text-black transition duration-300 group-hover:scale-110">
+              <div className="mx-auto mb-5 h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white" />
+
+              <p className="text-sm text-white/40">
+                Loading Showreel...
+              </p>
+
+            </div>
+
+          ) : media.length === 0 ? (
+
+            /* EMPTY STATE */
+
+            <div className="rounded-3xl border border-dashed border-white/10 bg-[#111] p-20 text-center">
+
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-2xl">
                 ▶
               </div>
 
-            </div>
+              <h3 className="mt-6 text-2xl font-bold">
+                No Media Uploaded
+              </h3>
 
-            <div className="absolute bottom-6 left-6">
-
-              <p className="text-xs uppercase tracking-[0.3em] text-white/30">
-                {businessName}
+              <p className="mt-4 text-white/40">
+                Upload your showreel or projects from Owner Panel.
               </p>
 
-              <p className="mt-2 text-lg font-bold">
-                SHOWREEL 2026
-              </p>
             </div>
 
-            <div className="absolute bottom-6 right-6 text-xs text-white/30">
-              PLAY FILM
+          ) : (
+
+            /* MEDIA GRID */
+
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+
+              {media.map((item) => (
+
+                <div
+                  key={item.id}
+                  className="group overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d0d] transition duration-500 hover:-translate-y-2 hover:border-white/20 hover:bg-[#111]"
+                >
+
+                  {/* MEDIA */}
+
+                  <div className="relative aspect-video overflow-hidden bg-black">
+
+                    {item.mediaType === "VIDEO" ? (
+
+                      <video
+                        controls
+                        preload="metadata"
+                        playsInline
+                        className="h-full w-full object-cover"
+                        poster={
+                          item.thumbnailUrl
+                            ? mediaUrl(item.thumbnailUrl)
+                            : undefined
+                        }
+                      >
+                        <source
+                          src={mediaUrl(item.fileUrl)}
+                          type="video/mp4"
+                        />
+
+                        Your browser does not support video playback.
+                      </video>
+
+                    ) : (
+
+                      <Image
+                        src={mediaUrl(item.fileUrl)}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        unoptimized
+                        className="object-cover transition duration-700 group-hover:scale-105"
+                      />
+
+                    )}
+
+                  </div>
+
+                  {/* MEDIA INFORMATION */}
+
+                  <div className="p-6">
+
+                    <div className="mb-3 flex items-center justify-between">
+
+                      <span className="text-[10px] uppercase tracking-[0.3em] text-white/25">
+                        {item.mediaType === "VIDEO"
+                          ? "Video"
+                          : "Visual"}
+                      </span>
+
+                      <span className="text-xs text-white/20">
+                        {String(item.id).padStart(2, "0")}
+                      </span>
+
+                    </div>
+
+                    <h3 className="text-xl font-black tracking-tight">
+                      {item.title}
+                    </h3>
+
+                    {item.description && (
+                      <p className="mt-3 text-sm leading-6 text-white/40">
+                        {item.description}
+                      </p>
+                    )}
+
+                  </div>
+
+                </div>
+
+              ))}
+
             </div>
-          </div>
+
+          )}
+
         </div>
+
       </section>
 
       {/* ================= SERVICES ================= */}
@@ -307,6 +513,7 @@ export default function Home() {
         <div className="flex flex-col justify-between gap-10 md:flex-row md:items-end">
 
           <div>
+
             <p className="text-xs uppercase tracking-[0.3em] text-white/30">
               What We Do
             </p>
@@ -314,12 +521,14 @@ export default function Home() {
             <h2 className="mt-3 text-5xl font-black tracking-[-0.04em] sm:text-7xl">
               SERVICES
             </h2>
+
           </div>
 
           <p className="max-w-sm text-sm leading-6 text-white/40">
             Choose a package and turn your idea into
             professional cinematic content.
           </p>
+
         </div>
 
         <div className="mt-16 divide-y divide-white/10 border-y border-white/10">
@@ -377,10 +586,13 @@ export default function Home() {
                 </div>
 
               </Link>
+
             ))
+
           )}
 
         </div>
+
       </section>
 
       {/* ================= ABOUT ================= */}
@@ -400,7 +612,7 @@ export default function Home() {
 
             <h2 className="mt-5 text-5xl font-black leading-[0.95] tracking-[-0.05em] sm:text-7xl">
 
-              WE DON&apos;T
+              WE DON'T
               <br />
 
               JUST SHOOT.
@@ -441,7 +653,9 @@ export default function Home() {
             </Link>
 
           </div>
+
         </div>
+
       </section>
 
       {/* ================= CTA ================= */}
@@ -461,7 +675,7 @@ export default function Home() {
 
           <h2 className="mx-auto mt-6 max-w-4xl text-6xl font-black leading-[0.85] tracking-[-0.06em] sm:text-8xl lg:text-9xl">
 
-            LET&apos;S CREATE
+            LET'S CREATE
             <br />
 
             <span className="italic text-white/30">
@@ -478,6 +692,7 @@ export default function Home() {
           </Link>
 
         </div>
+
       </section>
 
       {/* ================= FOOTER ================= */}
@@ -491,13 +706,20 @@ export default function Home() {
           <div className="flex items-center">
 
             {logoUrl ? (
-              <img
+
+              <Image
                 src={logoUrl}
                 alt={businessName}
+                width={160}
+                height={40}
+                unoptimized
                 className="h-10 w-auto max-w-[160px] object-contain"
               />
+
             ) : (
+
               <div>
+
                 <p className="font-black tracking-[0.18em]">
                   {businessName}
                 </p>
@@ -505,7 +727,9 @@ export default function Home() {
                 <p className="mt-1 text-xs text-white/25">
                   CINEMATIC VISUAL STUDIO
                 </p>
+
               </div>
+
             )}
 
           </div>
@@ -535,6 +759,7 @@ export default function Home() {
           </p>
 
         </div>
+
       </footer>
 
     </main>
